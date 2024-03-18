@@ -16,12 +16,10 @@ load_dotenv('.env')
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
-COMPLETIONS_MODEL = "text-davinci-003"
+COMPLETIONS_MODEL = "gpt-3.5-turbo-instruct"
 
-MODEL_NAME = "curie"
-
-DOC_EMBEDDINGS_MODEL = f"text-search-{MODEL_NAME}-doc-001"
-QUERY_EMBEDDINGS_MODEL = f"text-search-{MODEL_NAME}-query-001"
+DOC_EMBEDDINGS_MODEL = "text-embedding-ada-002"
+QUERY_EMBEDDINGS_MODEL = "text-embedding-ada-002"
 
 MAX_SECTION_LEN = 500
 SEPARATOR = "\n* "
@@ -35,11 +33,12 @@ COMPLETIONS_API_PARAMS = {
 }
 
 def get_embedding(text: str, model: str) -> list[float]:
-    result = openai.Embedding.create(
+    result = openai.embeddings.create(
       model=model,
       input=text
     )
-    return result["data"][0]["embedding"]
+
+    return result.data[0].embedding
 
 def get_doc_embedding(text: str) -> list[float]:
     return get_embedding(text, DOC_EMBEDDINGS_MODEL)
@@ -134,12 +133,12 @@ def answer_query_with_context(
 
     print("===\n", prompt)
 
-    response = openai.Completion.create(
+    response = openai.completions.create(
                 prompt=prompt,
                 **COMPLETIONS_API_PARAMS
             )
 
-    return response["choices"][0]["text"].strip(" \n"), context
+    return response.choices[0].text.strip(" \n"), context
 
 def index(request):
     return render(request, "index.html", { "default_question": "What is The Minimalist Entrepreneur about?" })

@@ -23,11 +23,9 @@ from transformers import GPT2TokenizerFast
 
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
-COMPLETIONS_MODEL = "text-davinci-003"
+COMPLETIONS_MODEL = "gpt-3.5-turbo-instruct"
 
-MODEL_NAME = "curie"
-
-DOC_EMBEDDINGS_MODEL = f"text-search-{MODEL_NAME}-doc-001"
+DOC_EMBEDDINGS_MODEL = "text-embedding-ada-002"
 
 tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
 
@@ -74,11 +72,12 @@ df.head()
 df.to_csv(f'book.pdf.pages.csv', index=False)
 
 def get_embedding(text: str, model: str) -> list[float]:
-    result = openai.Embedding.create(
+    result = openai.embeddings.create(
       model=model,
       input=text
     )
-    return result["data"][0]["embedding"]
+
+    return result.data[0].embedding
 
 def get_doc_embedding(text: str) -> list[float]:
     return get_embedding(text, DOC_EMBEDDINGS_MODEL)
@@ -100,6 +99,6 @@ doc_embeddings = compute_doc_embeddings(df)
 
 with open(f'book.pdf.embeddings.csv', 'w') as f:
     writer = csv.writer(f)
-    writer.writerow(["title"] + list(range(4096)))
+    writer.writerow(["title"] + list(range(1536)))
     for i, embedding in list(doc_embeddings.items()):
         writer.writerow(["Page " + str(i + 1)] + embedding)
